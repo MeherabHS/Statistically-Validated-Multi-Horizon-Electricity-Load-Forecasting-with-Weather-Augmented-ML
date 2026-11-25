@@ -4,6 +4,11 @@
 **Department:** Software Engineering (SWE)  
 **Institution:** Daffodil International University  
 
+> **Preprint:** Shafin, M. H. (2026). *Statistically Validated Multi-Horizon Electricity Load Forecasting with Weather-Augmented Machine Learning under Walk-Forward Evaluation.* Research Square. https://doi.org/10.21203/rs.3.rs-9285801/v1  
+> Presented at the DIU Research Poster Presentation, May 2026 (Certificate of Achievement).
+
+**At a glance:** ENTSO-E hourly load for Ireland plus NASA POWER weather · horizons of 1 h, 24 h and 168 h · weather-augmented Gradient Boosting is best at every horizon (test RMSE 166 at t+1, 456 at t+168 versus 511 without weather).
+
 ## Overview
 
 This project develops a **multi-horizon electricity load forecasting pipeline for Ireland** using statistical, machine learning, and deep probabilistic models. The system integrates **ENTSO-E hourly electricity demand data** with **NASA POWER weather data** and evaluates forecasting performance across three operational horizons:
@@ -154,36 +159,36 @@ reports/
 └── horizon_models/
 
 ```
-# Feature Engineering
+## Feature Engineering
 
 The forecasting table includes the following feature groups.
 
-## Calendar Features
+### Calendar Features
 
 - hour_of_day
 - day_of_week
 - month
 - day_of_year
 
-## Cyclical Encodings
+### Cyclical Encodings
 
 - sin_hour, cos_hour
 - sin_dow, cos_dow
 - sin_month, cos_month
 
-## Lag Features
+### Lag Features
 
 - load_lag_1
 - load_lag_24
 - load_lag_48
 - load_lag_168
 
-## Rolling Features
+### Rolling Features
 
 - load_rollmean_24
 - load_rollstd_24
 
-## Weather Features
+### Weather Features
 
 - temperature
 - wind speed
@@ -192,7 +197,7 @@ The forecasting table includes the following feature groups.
 
 ---
 
-# Models Evaluated
+## Models Evaluated
 Baseline Justification
 
 Strong baseline models are included to ensure that performance improvements from complex models are meaningful.
@@ -202,31 +207,31 @@ In particular:
 - SARIMAX provides a classical statistical reference
 - Additional comparisons ensure that gains from machine learning models are not due to feature engineering alone
 
-## 1. Seasonal Naive
+### 1. Seasonal Naive
 
 Used as the simplest benchmark. This establishes a minimum acceptable forecasting baseline.
 
-## 2. SARIMAX
+### 2. SARIMAX
 
 Used as the primary statistical baseline. This provides a classical time-series benchmark.
 
-## 3. Quantile GBR
+### 3. Quantile GBR
 
 A machine learning model designed to produce both point forecasts and prediction intervals.
 
-## 4. Quantile GBR + Weather
+### 4. Quantile GBR + Weather
 
 The final best-performing model. This model augments the structured forecasting table with meteorological variables.
 
-## 5. DeepAR + Weather
+### 5. DeepAR + Weather
 
 A probabilistic deep learning model trained to test whether a sequence model could outperform tree-based methods.
 
 ---
 
-# Final Results
+## Final Results
 
-## RMSE Comparison
+### RMSE Comparison
 
 | Horizon | DeepAR + Weather | GBR | GBR + Weather |
 |--------|------------------|-----|---------------|
@@ -234,18 +239,21 @@ A probabilistic deep learning model trained to test whether a sequence model cou
 | t+24 | 602.30 | 238.99 | 232.42 |
 | t+168 | 535.60 | 510.75 | 455.78 |
 
-Final Results
+Values are test-set RMSE for each horizon (`reports/tables/model_comparison_table.csv`).
 
-All metrics are reported as mean ± standard deviation across walk-forward validation folds.
+### Baseline Comparison (one-step-ahead split)
 
-RMSE Comparison
-Horizon    GBR + Weather
-t+1        166.48 ± X
-t+24       232.42 ± X
-t+168      455.78 ± X
+| Model | Test RMSE | Test MAE | 80% interval coverage |
+|---|---|---|---|
+| Quantile GBR | 121.98 | 90.25 | 0.689 |
+| Seasonal Naive (weekly) | 316.51 | 236.90 | n/a |
+| SARIMAX (1,0,1)(1,0,1,24) | 389.85 | 325.90 | n/a |
+
+Source: `reports/baselines report/baseline_model_comparison.csv`. Gradient Boosting beats both classical baselines by a wide margin, and its 80% interval covers 68.9% of test points, below the nominal level.
+
 ---
 
-# Key Findings
+## Key Findings
 
 - Weather covariates improve forecasting accuracy at all horizons.
 - The largest improvement appears at the **t+168 horizon**.
@@ -255,9 +263,9 @@ t+168      455.78 ± X
 
 ---
 
-# Figures
+## Figures
 
-## Figure 1 — RMSE vs Forecast Horizon
+### Figure 1 — RMSE vs Forecast Horizon
 
 ![RMSE vs Horizon](reports/figures/rmse_vs_horizon.png)
 
@@ -265,21 +273,21 @@ t+168      455.78 ± X
 
 Shows comparative forecast error across all evaluated models.
 
-## Figure 2 — Prediction Interval Coverage
+### Figure 2 — Prediction Interval Coverage
 
 ![Interval Coverage](reports/figures/interval_coverage.png)
 
 
 Shows empirical **80% interval coverage** for probabilistic models.
 
-## Figure 3 — Forecast vs Actual Load
+### Figure 3 — Forecast vs Actual Load
 
 ![Forecast vs Actual](reports/figures/forecast_vs_actual.png)
 
 
 Illustrates actual electricity demand, median forecast, and uncertainty interval.
 
-## Figure 4 — Forecasting Pipeline Architecture
+### Figure 4 — Forecasting Pipeline Architecture
 
 
 ![Forecasting Pipeline Architecture](reports/figures/pipeline_architecture.png)
@@ -288,7 +296,7 @@ Summarizes the full system workflow.
 
 ---
 
-# Interpretation
+## Interpretation
 
 
 **Failure Analysis**
@@ -302,11 +310,11 @@ Despite strong overall performance, the model exhibits reduced accuracy under sp
 These limitations highlight the need for improved modeling of extreme events and uncertainty calibration.
 
 
-## Why GBR Performed Best
+### Why GBR Performed Best
 
 Gradient Boosting performs well on structured tabular datasets with engineered features. This project uses extensive lag, calendar, rolling, and weather variables, which are well suited to tree-based ensemble learning.
 
-## Why DeepAR Performed Poorly
+### Why DeepAR Performed Poorly
 
 DeepAR is a probabilistic recurrent model that typically benefits from:
 
@@ -316,13 +324,13 @@ DeepAR is a probabilistic recurrent model that typically benefits from:
 
 This project used one year of hourly data and a strong engineered-feature representation, which favored tabular machine learning models over deep sequence models.
 
-## Why Weather Helped More at Longer Horizons
+### Why Weather Helped More at Longer Horizons
 
 At very short horizons, recent demand lags already contain strong predictive signal. At longer horizons, that information weakens, and weather variables become more valuable because they provide forward-looking environmental context.
 
 ---
 
-# Limitations
+## Limitations
 
 This study has several limitations:
 
@@ -334,7 +342,7 @@ This study has several limitations:
 
 ---
 
-# Future Work
+## Future Work
 
 Potential extensions include:
 
@@ -346,9 +354,9 @@ Potential extensions include:
 
 ---
 
-# Reproducibility
+## Reproducibility
 
-## Recommended Environment
+### Recommended Environment
 
 - Python 3.13
 - pandas
@@ -360,8 +368,16 @@ Potential extensions include:
 - gluonts
 - torch
 
-## Example Setup
+### Example Setup
 
 ```bash
 pip install pandas numpy matplotlib scikit-learn statsmodels requests gluonts
+```
+
+## Citation
+
+```
+Shafin, M. H. (2026). Statistically Validated Multi-Horizon Electricity Load Forecasting with
+Weather-Augmented Machine Learning under Walk-Forward Evaluation. Research Square [Preprint].
+https://doi.org/10.21203/rs.3.rs-9285801/v1
 ```
